@@ -1,0 +1,129 @@
+<main class="page" :class="{ 'is-active': currentPage === 'detail' }">
+  <div class="wrap">
+    <button class="back" @click="$emit('go', 'dashboard')">← Back to dashboard</button>
+  </div>
+
+  <template v-if="project && detailModel">
+    <div class="dt-hero">
+      <div class="wrap">
+        <div class="dt-crumb dim-tag" :style="{ color: detailModel.dimensionColor }"><span class="dim-dot" :style="{ background: detailModel.dimensionColor }"></span>{{ project.dim }}</div>
+        <h1>{{ project.name }}</h1>
+        <p class="dt-blurb">{{ project.blurb }}</p>
+        <div class="dt-facts">
+          <div class="fact"><span class="fact-l">Faculty</span><span class="fact-v">{{ project.fac }}</span></div>
+          <div class="fact"><span class="fact-l">Building</span><span class="fact-v">{{ project.bldg }}</span></div>
+          <div class="fact"><span class="fact-l">Project lead</span><span class="fact-v">{{ project.lead }}</span></div>
+          <div class="fact"><span class="fact-l">Status</span><span class="fact-v"><span class="pill" :class="project.status">{{ project.status }}</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="dt-grid">
+        <div>
+          <div class="panel">
+            <div class="panel-eye"><h3>Impact score</h3><span class="eyebrow">Weighted · 0–100</span></div>
+            <div class="score-hero">
+              <div class="score-band">{{ detailModel.scoreBand }}</div>
+              <div class="big">{{ detailModel.scoreValue }}<small>/ 100</small></div>
+            </div>
+            <div class="breakdown">
+              <div v-for="item in detailModel.breakdown" :key="item.name" class="bd-row">
+                <div class="bd-name">{{ item.name }}<span class="w">· wt {{ item.w }}</span></div>
+                <div class="bd-track"><div class="bd-fill" :class="{ red: item.red }" :style="{ width: `${item.raw}%` }"></div></div>
+                <div class="bd-val"><b>{{ item.raw }}</b>/100 → +{{ item.contribution }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-eye"><h3>Carbon impact vs baseline</h3><span class="eyebrow">tCO₂e / year</span></div>
+            <div class="co2-compare">
+              <div class="co2-row">
+                <span class="co2-lab">Baseline</span>
+                <div class="co2-track"><div class="co2-fill base" style="width:100%"></div></div>
+                <span class="co2-num">{{ fmt(project.base) }}</span>
+              </div>
+              <div class="co2-row">
+                <span class="co2-lab">After</span>
+                <div class="co2-track"><div class="co2-fill now" :style="{ width: `${(detailModel.after / project.base * 100).toFixed(0)}%` }"></div></div>
+                <span class="co2-num">{{ fmt(detailModel.after) }}</span>
+              </div>
+            </div>
+            <div class="co2-delta">
+              <span class="d-num">−{{ fmt(project.co2e) }} t</span>
+              <span class="d-lab">measured annual reduction · {{ detailModel.carbonReductionPercent }}% below baseline, via fixed emission-factor library</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-eye"><h3>Cost efficiency</h3><span class="eyebrow">What each euro buys</span></div>
+            <div class="cost-row">
+              <div class="cost-item"><div class="ci-v mono">{{ detailModel.costText }}</div><div class="ci-l">Total cost</div></div>
+              <div class="cost-item"><div class="ci-v mono cost-highlight">€{{ project.eur }}</div><div class="ci-l">Per tonne CO₂e</div></div>
+              <div class="cost-item"><div class="ci-v mono">{{ fmt(project.co2e) }}<span class="cost-unit"> t</span></div><div class="ci-l">Abated / year</div></div>
+            </div>
+            <p class="cost-copy">Cost per tonne abated is the single most comparable lever across the portfolio — it is what lets a €{{ project.eur }}/t project be weighed directly against every other initiative, regardless of size.</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-eye"><h3>SDG alignment</h3><span class="eyebrow">{{ project.sdgs.length }} of 17</span></div>
+            <div class="sdg-grid">
+              <div
+                v-for="cell in detailModel.sdgCells"
+                :key="cell.id"
+                class="sdg-cell"
+                :class="{ off: !cell.active }"
+                :style="{ background: cell.color }"
+                :title="`SDG ${cell.id}`"
+              >
+                <span class="n">{{ cell.id }}</span>
+                <span class="t">{{ cell.text }}</span>
+              </div>
+            </div>
+            <div class="sdg-legend">Contributes to <b>{{ detailModel.sdgSummary }}</b> — {{ detailModel.sdgSummaryText }}.</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-eye"><h3>Milestones</h3><span class="eyebrow">{{ detailModel.completedStages }}/5 stages</span></div>
+            <div class="timeline">
+              <div
+                v-for="item in detailModel.timeline"
+                :key="item.stage"
+                class="ms"
+                :class="{ current: item.current, done: item.done }"
+              >
+                <div class="ms-dot"></div>
+                <div class="ms-body">
+                  <div class="ms-name">{{ item.stage }}</div>
+                  <div class="ms-date">{{ item.date }}</div>
+                  <div v-if="item.current" class="ms-status">In progress</div>
+                  <div v-else-if="item.done" class="ms-status ms-status-done">Complete</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-eye"><h3>Synergies</h3><span class="eyebrow">{{ detailModel.linkedProjects.length }} linked</span></div>
+            <p class="syn-copy">Projects that share infrastructure, contracts or co-benefits — worth funding together.</p>
+            <button
+              v-for="linkedProject in detailModel.linkedProjects"
+              :key="linkedProject.id"
+              class="syn"
+              @click="$emit('open-detail', linkedProject.id)"
+            >
+              <div class="syn-top">
+                <span class="syn-name"><span class="dim-dot" :style="{ background: linkedProject.color }"></span>{{ linkedProject.name }}<span class="syn-arrow">↗</span></span>
+                <span class="syn-score">{{ linkedProject.score }}</span>
+              </div>
+              <div class="syn-note">{{ linkedProject.note }}</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</main>

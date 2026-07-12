@@ -1,0 +1,35 @@
+<site-nav :current-page="currentPage" @go="go" @scroll-to="scrollToSection"></site-nav>
+<div class="diag-rule"></div>
+<landing-page
+  :current-page="currentPage"
+  :dimension-summaries="dimensionSummaries"
+  :hero-stats="heroStats"
+  :weight-segments="weightSegments"
+  :weights="weightDetails"
+  @go="go"
+  @scroll-to="scrollToSection"
+  @select-dimension="selectDimension"
+></landing-page>
+<dashboard-page
+  :current-page="currentPage"
+  :dashboard-count-text="dashboardCountText"
+  :dashboard-summary="dashboardSummary"
+  :dimension-chips="dimensionChips"
+  :dimensions="dimensions"
+  :filtered-projects="filteredProjects"
+  :score="scoreProject"
+  :sdg="sdg"
+  :state="state"
+  @open-detail="openDetail"
+  @update-dim="updateDim"
+  @update-query="updateQuery"
+  @update-sort="updateSort"
+  @update-status="updateStatus"
+></dashboard-page>
+<detail-page
+  :current-page="currentPage"
+  :detail-model="detailModel"
+  :project="selectedProject"
+  @go="go"
+  @open-detail="openDetail"
+></detail-page>

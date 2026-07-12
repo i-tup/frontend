@@ -1,0 +1,113 @@
+<main class="page" :class="{ 'is-active': currentPage === 'dashboard' }">
+  <div class="dash-head">
+    <div class="wrap">
+      <div class="dash-title">
+        <div>
+          <h1>Project dashboard</h1>
+          <p>{{ dashboardCountText }}</p>
+        </div>
+        <div class="dash-summary">
+          <div v-for="item in dashboardSummary" :key="item.label" class="ds">
+            <div class="ds-n">{{ item.value }}<span class="u">{{ item.unit }}</span></div>
+            <div class="ds-l">{{ item.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="wrap">
+      <div class="toolbar-inner">
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input :value="state.q" type="text" placeholder="Search projects, faculties, buildings…" @input="$emit('update-query', $event.target.value)" />
+        </div>
+        <div class="select-wrap">
+          <select :value="state.sort" @change="$emit('update-sort', $event.target.value)">
+            <option value="score">Sort · Impact score</option>
+            <option value="cost">Sort · Cost per tonne ↑</option>
+            <option value="co2e">Sort · CO₂e reduction ↓</option>
+          </select>
+        </div>
+      </div>
+      <div class="chips" style="margin-top:12px">
+        <button
+          v-for="dimension in dimensionChips"
+          :key="dimension.name"
+          class="chip"
+          :class="{ active: state.dim === dimension.name }"
+          @click="$emit('update-dim', dimension.name)"
+        >
+          <span v-if="dimension.color" class="cdot" :style="{ background: dimension.color }"></span>{{ dimension.name }}
+        </button>
+      </div>
+      <div class="status-row">
+        <button
+          v-for="status in statuses"
+          :key="status.value"
+          class="chip"
+          :class="{ active: state.status === status.value }"
+          @click="$emit('update-status', status.value)"
+        >
+          {{ status.label }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+      <template v-if="filteredProjects.length">
+        <button
+          v-for="project in filteredProjects"
+          :key="project.id"
+          class="card"
+          @click="$emit('open-detail', project.id)"
+        >
+          <div class="card-top">
+            <span class="dim-tag" :style="{ color: dimensions[project.dim].hex }"><span class="dim-dot" :style="{ background: dimensions[project.dim].hex }"></span>{{ project.dim }}</span>
+            <span class="pill" :class="project.status">{{ project.status }}</span>
+          </div>
+          <h3>{{ project.name }}</h3>
+          <div class="card-meta">{{ project.fac }} · {{ project.bldg }}</div>
+          <div class="card-body">
+            <div class="score-block">
+              <div class="score-lab">Impact score</div>
+              <div class="score-val">{{ score(project) }}<small>/100</small></div>
+              <div class="score-bar"><i :style="{ width: `${score(project)}%` }"></i></div>
+            </div>
+            <div class="mini-metrics">
+              <div class="mm"><span class="mm-v">{{ fmt(project.co2e) }}</span><span class="mm-l">tCO₂e/yr</span></div>
+              <div class="mm"><span class="mm-v">€{{ project.eur }}</span><span class="mm-l">per tonne</span></div>
+            </div>
+          </div>
+          <div class="sdg-mini">
+            <span
+              v-for="sdgId in project.sdgs"
+              :key="sdgId"
+              class="sdg-sq"
+              :style="{ background: sdg[sdgId][1] }"
+              :title="`SDG ${sdgId} · ${sdg[sdgId][0]}`"
+            >
+              {{ sdgId }}
+            </span>
+          </div>
+        </button>
+      </template>
+      <div v-else class="no-results">
+        <b>No projects match those filters.</b>
+        Try widening the dimension or status, or clearing the search.
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot foot-dashboard">
+    <div class="wrap">
+      <div class="foot-bot foot-dashboard-bot">
+        <span>© 2026 Technische Universität Berlin · Sustain.ALL Impact Tool</span>
+        <span>Emission factors: fixed library v2 · figures illustrative</span>
+      </div>
+    </div>
+  </footer>
+</main>

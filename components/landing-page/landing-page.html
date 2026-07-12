@@ -1,0 +1,125 @@
+<main class="page" :class="{ 'is-active': currentPage === 'landing' }">
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-eye eyebrow"><span class="red">Sustain.ALL</span> · Transformation Hub · TU Berlin</div>
+      <h1>Every climate project on campus, measured on <em>one</em> honest scale.</h1>
+      <p class="hero-sub">TU Berlin runs dozens of sustainability initiatives — but no two are counted the same way. Sustain.ALL turns each one into audited tonnes of CO<sub>2</sub>e, a real cost per tonne, and SDG reach, so funding follows evidence instead of the loudest pitch.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" @click="$emit('go', 'dashboard')">Explore the dashboard →</button>
+        <button class="btn btn-ghost" @click="$emit('scroll-to', 'method')">How scoring works</button>
+        <span class="hero-note">No pledges. No press releases. Measured impact.</span>
+      </div>
+
+      <div class="stats">
+        <div class="stats-grid">
+          <article v-for="stat in heroStats" :key="stat.label" class="stat">
+            <div class="stat-num">{{ stat.value }}<span class="u">{{ stat.unit }}</span></div>
+            <div class="stat-lab" v-html="stat.label"></div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="method" class="sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">The Impact Score · 0–100</div>
+        <h2>One number, five weighted questions — and the maths is on the table.</h2>
+        <p>Each project earns an impact score from five components. We publish the weights so a €5&nbsp;M grant and a €60&nbsp;k pilot can be compared on the same terms.</p>
+      </div>
+      <div class="weights">
+        <div>
+          <div class="weight-bar">
+            <div
+              v-for="weight in weightSegments"
+              :key="weight.name"
+              class="weight-seg"
+              :style="{ flex: weight.w, background: weight.color }"
+            >
+              {{ weight.label }} {{ weight.w }}
+            </div>
+          </div>
+          <div class="weight-list">
+            <div v-for="weight in weights" :key="weight.name" class="wl-row">
+              <span class="wl-w">{{ weight.w }}</span>
+              <span class="wl-name">{{ weight.name }}</span>
+              <span></span>
+              <span class="wl-desc">{{ weight.description }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="method-card">
+          <div class="mc-eye eyebrow">Worked example · Rooftop PV Retrofit</div>
+          <div class="gauge">
+            <div class="gauge-num">79</div>
+            <div class="gauge-scale">/ 100</div>
+          </div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:79%"></div></div>
+          <p class="method-foot">Scored <code>82·0.30 + 74·0.25 + 58·0.15 + 88·0.15 + 90·0.15</code>. Strong carbon and rock-solid metered data lift it; moderate SDG breadth holds it back. Every input is traceable on the project page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="submit" class="sec alt">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">Portfolio · Seven dimensions</div>
+        <h2>Filter the whole campus by where impact lands.</h2>
+        <p>Projects are grouped into seven action dimensions. Pick one to jump straight into the filtered dashboard, or submit your own project for assessment.</p>
+      </div>
+      <div class="dims">
+        <button
+          v-for="dimension in dimensionSummaries"
+          :key="dimension.name"
+          class="dim-tile"
+          @click="$emit('select-dimension', dimension.name)"
+        >
+          <div class="dt-name"><span class="dim-dot" :style="{ background: dimension.color }"></span>{{ dimension.name }}</div>
+          <div class="dt-count mono">{{ dimension.count }}<span> project{{ dimension.count !== 1 ? 's' : '' }}</span></div>
+          <div class="eyebrow" style="margin-top:8px">{{ dimension.totalCo2e }} tCO₂e/yr</div>
+        </button>
+      </div>
+      <div class="landing-actions">
+        <button class="btn btn-primary" @click="$emit('go', 'dashboard')">Browse all projects →</button>
+        <button class="btn btn-ghost">Submit a project for assessment</button>
+        <span class="hero-note">Teams supply the data · the tool returns a comparable score.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <div class="foot-brand-row">
+            <span class="tu-mark">TU Berlin</span>
+            <span class="brand-name foot-brand-name">Sustain<span class="dot">.</span>ALL</span>
+          </div>
+          <p>A transparency instrument built with the Sustain.ALL transformation hub and Dr. Kristina Fajga — real numbers for real decisions, not greenwashed claims.</p>
+        </div>
+        <div class="foot-cols">
+          <div class="foot-col">
+            <h4>Tool</h4>
+            <a @click.prevent="$emit('go', 'dashboard')">Dashboard</a>
+            <a @click.prevent="$emit('scroll-to', 'method')">Scoring method</a>
+            <a>Emission-factor library</a>
+            <a>Submit a project</a>
+          </div>
+          <div class="foot-col">
+            <h4>Governance</h4>
+            <a>Methodology paper</a>
+            <a>Data sources</a>
+            <a>Assessment queue</a>
+            <a>Contact</a>
+          </div>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Technische Universität Berlin · Sustain.ALL</span>
+        <span>Impact Tool · v0.9 prototype · figures illustrative</span>
+      </div>
+    </div>
+  </footer>
+</main>

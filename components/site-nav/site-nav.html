@@ -1,0 +1,27 @@
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand">
+      <span class="tu-mark">TU Berlin</span>
+      <span class="brand-name">Sustain<span class="dot">.</span>ALL</span>
+      <span class="brand-sub">Impact&nbsp;Tool</span>
+    </div>
+    <nav class="nav-links">
+      <button
+        :class="{ active: currentPage === 'landing' }"
+        @click="$emit('go', 'landing')"
+      >
+        Overview
+      </button>
+      <button
+        :class="{ active: currentPage === 'dashboard' }"
+        @click="$emit('go', 'dashboard')"
+      >
+        Dashboard
+      </button>
+      <button @click="$emit('scroll-to', 'method')">Method</button>
+    </nav>
+    <button class="nav-cta" @click="$emit('scroll-to', 'submit')">
+      Submit a project
+    </button>
+  </div>
+</header>

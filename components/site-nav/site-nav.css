@@ -1,0 +1,110 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.tu-mark {
+  font-weight: 900;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: var(--tu-red);
+  border: 2px solid var(--tu-red);
+  border-radius: 3px;
+  padding: 2px 7px 3px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.brand-name .dot {
+  color: var(--tu-red);
+}
+
+.brand-sub {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-left: 1px solid var(--line-strong);
+  padding-left: 12px;
+  margin-left: 2px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.nav-links button {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: 0.15s;
+}
+
+.nav-links button:hover {
+  color: var(--ink);
+  background: var(--panel);
+}
+
+.nav-links button.active {
+  color: var(--ink);
+}
+
+.nav-links button.active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  background: var(--tu-red);
+  margin-top: 5px;
+  border-radius: 2px;
+}
+
+.nav-cta {
+  background: var(--tu-red);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.84rem;
+  padding: 9px 16px;
+  border-radius: 6px;
+  transition: 0.15s;
+  white-space: nowrap;
+}
+
+.nav-cta:hover {
+  background: var(--tu-red-dark);
+}
+
+.diag-rule {
+  height: 6px;
+  background: repeating-linear-gradient(115deg, var(--tu-red) 0 2px, transparent 2px 9px);
+  opacity: 0.9;
+}

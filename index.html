@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sustain.ALL — AI Impact Tool · TU Berlin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./components/app/app.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/typescript@5.6.3/lib/typescript.js"></script>
+  <script type="module">
+    const moduleCache = new Map();
+
+    window.loadTypeScriptModule = async (path) => {
+      if (moduleCache.has(path)) {
+        return moduleCache.get(path);
+      }
+
+      const response = await fetch(path);
+
+      if (!response.ok) {
+        throw new Error(`Failed to load module: ${path}`);
+      }
+
+      const source = await response.text();
+      const result = window.ts.transpileModule(source, {
+        compilerOptions: {
+          target: window.ts.ScriptTarget.ES2022,
+          module: window.ts.ModuleKind.ES2022
+        }
+      });
+
+      const moduleUrl = URL.createObjectURL(
+        new Blob([result.outputText], { type: "text/javascript" })
+      );
+
+      try {
+        const module = await import(moduleUrl);
+        moduleCache.set(path, module);
+        return module;
+      } finally {
+        URL.revokeObjectURL(moduleUrl);
+      }
+    };
+
+    const { createAppConfig } = await window.loadTypeScriptModule(
+      "./components/app/app.ts"
+    );
+    const appConfig = await createAppConfig();
+
+    Vue.createApp(appConfig).mount("#app");
+  </script>
+</body>
+</html>
