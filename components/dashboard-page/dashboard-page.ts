@@ -9,7 +9,7 @@ const loadTemplate = async (): Promise<string> => {
 };
 
 export const createDashboardPageComponent = async () => ({
-  emits: ['open-detail', 'update-dim', 'update-query', 'update-sort', 'update-status'],
+  emits: ['open-detail', 'update-dim', 'update-query', 'update-sort', 'update-source', 'update-status'],
   methods: {
     fmt(value: number) {
       return Number(value).toLocaleString('en-US');
@@ -24,6 +24,7 @@ export const createDashboardPageComponent = async () => ({
     filteredProjects: { required: true, type: Array },
     score: { required: true, type: Function },
     sdg: { required: true, type: Object },
+    sourceChips: { required: true, type: Array },
     state: { required: true, type: Object }
   },
   setup() {
@@ -32,7 +33,9 @@ export const createDashboardPageComponent = async () => ({
         { label: 'All statuses', value: 'All' },
         { label: 'Concept', value: 'concept' },
         { label: 'Ongoing', value: 'ongoing' },
-        { label: 'Finalized', value: 'finalized' }
+        { label: 'Finalized', value: 'finalized' },
+        { label: 'Current', value: 'current' },
+        { label: 'Unknown', value: 'unknown' }
       ]
     };
   },

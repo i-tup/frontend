@@ -132,6 +132,69 @@
   border-color: var(--ink);
 }
 
+.chip-all {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--panel) 68%, white 32%);
+  color: var(--ink);
+}
+
+.chip-all:hover {
+  border-color: var(--tu-red);
+  color: var(--tu-red);
+}
+
+.chip-all.active {
+  background: var(--tu-red);
+  border-color: var(--tu-red);
+  color: #fff;
+}
+
+
+.chip-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 14px;
+}
+
+.chip-source-logo-wrap {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 0 0 20px;
+}
+
+.chip.active .chip-source-logo-wrap {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.chip-source-logo {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  display: block;
+}
+
+.chip-source-logo--google {
+  width: 11px;
+  height: 11px;
+}
+
+.chip-source-logo--gitlab {
+  width: 13px;
+  height: 13px;
+}
+
+.chip-source-logo--tu {
+  width: 12px;
+  height: 12px;
+}
+
 .chip .cdot {
   width: 8px;
   height: 8px;
@@ -170,6 +233,13 @@
 }
 
 .status-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.source-row {
   display: flex;
   gap: 7px;
   flex-wrap: wrap;
@@ -271,6 +341,15 @@
   font-size: 1.06rem;
   letter-spacing: -0.01em;
   line-height: 1.2;
+}
+
+.card-source {
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
 .card-meta {

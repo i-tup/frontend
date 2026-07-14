@@ -24,10 +24,51 @@ export const money = (value: number) => {
   return `€${value}`;
 };
 
+export const normalizeDimension = (
+  dimension: string,
+  dimensions: Record<string, any>
+) => (dimension && dimensions[dimension] ? dimension : 'Uncategorized');
+
+const SOURCE_META: Record<string, { key: string; label: string; logo: string | null }> = {
+  'gitlab': {
+    key: 'gitlab',
+    label: 'GitLab',
+    logo: 'https://about.gitlab.com/images/ico/favicon.ico'
+  },
+  'google form': {
+    key: 'google',
+    label: 'Google',
+    logo: 'https://www.gstatic.com/images/branding/googleg_gradient/1x/googleg_gradient_standard_20dp.png'
+  },
+  'tu.berlin': {
+    key: 'tu',
+    label: 'TU',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e7/TU-Logo-3D-rot.svg'
+  }
+};
+
+const createSourceChip = (source: string) => {
+  const meta = SOURCE_META[source] ?? null;
+
+  return {
+    key: meta?.key ?? 'default',
+    label: meta?.label ?? source,
+    logo: meta?.logo ?? null,
+    value: source
+  };
+};
+
+export const createSourceChips = (projects: any[]) => [
+  { key: 'all', label: 'All sources', logo: null, value: 'All' },
+  ...Array.from(new Set(projects.map((project) => project.source).filter(Boolean)))
+    .sort((left, right) => left.localeCompare(right))
+    .map(createSourceChip)
+];
+
 export const createHeroStats = (projects: any[]) => {
   const total = projects.reduce((sum, project) => sum + project.co2e, 0);
   const eurs = projects.map((project) => project.eur).sort((a, b) => a - b);
-  const median = eurs[Math.floor(eurs.length / 2)];
+  const median = eurs[Math.floor(eurs.length / 2)] ?? 0;
   const sdgSet = new Set<number>();
 
   projects.forEach((project) => {
@@ -74,9 +115,9 @@ export const createDimensionSummaries = (projects: any[], dimensions: Record<str
 export const createDashboardSummary = (projects: any[], weights: any[]) => {
   const totalCo2e = projects.reduce((sum, project) => sum + project.co2e, 0);
   const totalCost = projects.reduce((sum, project) => sum + project.cost, 0);
-  const averageScore = Math.round(
-    projects.reduce((sum, project) => sum + score(project, weights), 0) / projects.length
-  );
+  const averageScore = projects.length
+    ? Math.round(projects.reduce((sum, project) => sum + score(project, weights), 0) / projects.length)
+    : 0;
 
   return [
     { label: 'CO₂e / yr', unit: ' t', value: fmt(totalCo2e) },
@@ -92,10 +133,11 @@ export const createFilteredProjects = (
 ) => {
   const query = state.q.toLowerCase();
   const list = projects.filter((project) => {
-    const haystack = `${project.name}${project.fac}${project.bldg}${project.lead}${project.dim}`.toLowerCase();
+    const haystack = `${project.name}${project.fac}${project.bldg}${project.lead}${project.dim}${project.source}`.toLowerCase();
 
     return (
       (state.dim === 'All' || project.dim === state.dim) &&
+      (state.source === 'All' || project.source === state.source) &&
       (state.status === 'All' || project.status === state.status) &&
       (!query || haystack.includes(query))
     );
@@ -123,7 +165,8 @@ export const createDetailModel = (
 ) => {
   const scoreValue = score(project, weights);
   const after = project.base - project.co2e;
-  const completedStages = milestoneDone[project.status];
+  const completedStages = milestoneDone[project.status] ?? 0;
+  const dimensionColor = dimensions[project.dim]?.hex ?? dimensions.Uncategorized.hex;
 
   return {
     after,
@@ -132,10 +175,10 @@ export const createDetailModel = (
       raw: project.s[weight.k],
       ...weight
     })),
-    carbonReductionPercent: ((project.co2e / project.base) * 100).toFixed(0),
+    carbonReductionPercent: project.base ? ((project.co2e / project.base) * 100).toFixed(0) : '0',
     completedStages,
     costText: money(project.cost),
-    dimensionColor: dimensions[project.dim].hex,
+    dimensionColor,
     linkedProjects: project.syn
       .map(([id, note]: [string, string]) => {
         const linkedProject = projects.find((item) => item.id === id);
@@ -145,7 +188,7 @@ export const createDetailModel = (
         }
 
         return {
-          color: dimensions[linkedProject.dim].hex,
+          color: dimensions[linkedProject.dim]?.hex ?? dimensions.Uncategorized.hex,
           id,
           name: linkedProject.name,
           note,

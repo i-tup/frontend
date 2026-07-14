@@ -1,5 +1,26 @@
 type ModuleLoader = (path: string) => Promise<Record<string, any>>;
 
+type RemoteProject = {
+  id: string;
+  name: string;
+  description?: string;
+  building?: string;
+  co2e?: number;
+  lead?: string;
+  base?: number;
+  cost?: number;
+  eur?: number;
+  kpi?: Record<string, number>;
+  synenergies?: [string, string][];
+  institution?: string;
+  dimension?: string;
+  status?: string;
+  source?: string;
+  goals?: number[];
+};
+
+const PROJECTS_URL = 'https://i-tup.github.io/backend/projects.json';
+
 const loadTemplate = async (): Promise<string> => {
   const response = await fetch('./components/app/app.html');
 
@@ -11,6 +32,51 @@ const loadTemplate = async (): Promise<string> => {
 };
 
 const loadModule = (window as any).loadTypeScriptModule as ModuleLoader;
+
+const mapProject = (
+  project: RemoteProject,
+  dimensions: Record<string, any>,
+  normalizeDimension: (dimension: string, dimensions: Record<string, any>) => string
+) => ({
+  id: project.id,
+  name: project.name,
+  dim: normalizeDimension(project.dimension ?? '', dimensions),
+  fac: project.institution || 'Unknown institution',
+  bldg: project.building || 'unknown',
+  lead: project.lead || 'unknown',
+  status: project.status || 'unknown',
+  co2e: project.co2e ?? 0,
+  base: project.base ?? 0,
+  cost: project.cost ?? 0,
+  eur: project.eur ?? 0,
+  s: {
+    carbon: project.kpi?.carbon ?? 0,
+    cost: project.kpi?.cost ?? 0,
+    sdg: project.kpi?.sdg ?? 0,
+    lockin: project.kpi?.lockin ?? 0,
+    data: project.kpi?.data ?? 0
+  },
+  sdgs: Array.isArray(project.goals) ? project.goals : [],
+  source: project.source || 'unknown',
+  syn: Array.isArray(project.synenergies) ? project.synenergies : [],
+  blurb: project.description || ''
+});
+
+const loadProjects = async (
+  dimensions: Record<string, any>,
+  normalizeDimension: (dimension: string, dimensions: Record<string, any>) => string
+) => {
+  const response = await fetch(PROJECTS_URL);
+
+  if (!response.ok) {
+    throw new Error('Failed to load remote projects.');
+  }
+
+  const payload = await response.json();
+  const items = Array.isArray(payload.data) ? payload.data : [];
+
+  return items.map((project: RemoteProject) => mapProject(project, dimensions, normalizeDimension));
+};
 
 export const createAppConfig = async () => {
   const [
@@ -31,6 +97,7 @@ export const createAppConfig = async () => {
 
   const dimensions = appData.DIMENSIONS;
   const weights = appData.WEIGHTS;
+  const projects = await loadProjects(dimensions, appUtils.normalizeDimension);
   const scoreProject = (project: any) => appUtils.score(project, weights);
 
   return {
@@ -42,10 +109,16 @@ export const createAppConfig = async () => {
     },
     computed: {
       dashboardCountText() {
-        return `${this.filteredProjects.length} of ${this.projects.length} projects · ${this.state.dim === 'All' ? 'all dimensions' : this.state.dim}${this.state.status !== 'All' ? ` · ${this.state.status}` : ''}`;
+        const filters = [
+          this.state.dim === 'All' ? 'all dimensions' : this.state.dim,
+          this.state.source === 'All' ? '' : this.state.source,
+          this.state.status === 'All' ? '' : this.state.status
+        ].filter(Boolean);
+
+        return `${this.filteredProjects.length} of ${this.projects.length} projects · ${filters.join(' · ')}`;
       },
       dashboardSummary() {
-        return appUtils.createDashboardSummary(this.projects, weights);
+        return appUtils.createDashboardSummary(this.filteredProjects, weights);
       },
       detailModel() {
         if (!this.selectedProject) {
@@ -80,6 +153,9 @@ export const createAppConfig = async () => {
       selectedProject() {
         return this.projects.find((project: any) => project.id === this.selectedProjectId) || null;
       },
+      sourceChips() {
+        return appUtils.createSourceChips(this.projects);
+      },
       weightSegments() {
         const colors = ['var(--tu-red)', '#b81a2a', '#c94b57', '#d67882', '#e2a5ac'];
 
@@ -97,7 +173,7 @@ export const createAppConfig = async () => {
         return [
           { description: 'Measured tCO₂e reduction against a documented baseline, using a fixed emission-factor library.', name: 'Carbon', w: 30 },
           { description: 'Cost per tonne abated (€/tCO₂e) — how far each euro of funding actually goes.', name: 'Cost', w: 25 },
-          { description: 'Breadth and depth of alignment across the UN\'s 17 Sustainable Development Goals.', name: 'SDG reach', w: 15 },
+          { description: "Breadth and depth of alignment across the UN's 17 Sustainable Development Goals.", name: 'SDG reach', w: 15 },
           { description: 'Does it prevent future high-carbon commitments, or quietly reinforce them?', name: 'Lock-in avoidance', w: 15 },
           { description: 'How solid is the evidence — metered readings and audits, or estimates?', name: 'Data quality', w: 15 }
         ];
@@ -106,13 +182,14 @@ export const createAppConfig = async () => {
     data: () => ({
       currentPage: 'landing',
       dimensions,
-      projects: appData.PROJECTS,
+      projects,
       sdg: appData.SDG,
-      selectedProjectId: appData.PROJECTS[0]?.id ?? null,
+      selectedProjectId: projects[0]?.id ?? null,
       state: {
         dim: 'All',
         q: '',
         sort: 'score',
+        source: 'All',
         status: 'All'
       }
     }),
@@ -150,6 +227,9 @@ export const createAppConfig = async () => {
       },
       updateSort(sort: string) {
         this.state.sort = sort;
+      },
+      updateSource(source: string) {
+        this.state.source = source;
       },
       updateStatus(status: string) {
         this.state.status = status;

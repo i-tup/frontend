@@ -5,7 +5,8 @@ export const DIMENSIONS = {
   Water: { c: 'var(--d-water)', hex: '#1e7a8c' },
   Digital: { c: 'var(--d-digital)', hex: '#5b4b8a' },
   Biodiversity: { c: 'var(--d-bio)', hex: '#6e7b2e' },
-  Wellbeing: { c: 'var(--d-well)', hex: '#a24a6b' }
+  Wellbeing: { c: 'var(--d-well)', hex: '#a24a6b' },
+  Uncategorized: { c: 'var(--line-strong)', hex: '#7c8794' }
 };
 
 export const WEIGHTS = [

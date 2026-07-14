@@ -47,10 +47,31 @@
           v-for="status in statuses"
           :key="status.value"
           class="chip"
-          :class="{ active: state.status === status.value }"
+          :class="{ active: state.status === status.value, 'chip-all': status.value === 'All' }"
           @click="$emit('update-status', status.value)"
         >
           {{ status.label }}
+        </button>
+      </div>
+      <div class="source-row">
+        <button
+          v-for="source in sourceChips"
+          :key="source.value"
+          class="chip chip-source"
+          :class="{ active: state.source === source.value, 'chip-all': source.value === 'All' }"
+          @click="$emit('update-source', source.value)"
+        >
+          <span v-if="source.logo" class="chip-source-logo-wrap">
+            <img
+            height=14
+              :src="source.logo"
+              :alt="`${source.label} logo`"
+              class="chip-source-logo"
+              :class="`chip-source-logo--${source.key}`"
+              loading="lazy"
+            />&nbsp;
+          </span>
+          <span>{{ source.label }}</span>
         </button>
       </div>
     </div>
@@ -69,6 +90,7 @@
             <span class="dim-tag" :style="{ color: dimensions[project.dim].hex }"><span class="dim-dot" :style="{ background: dimensions[project.dim].hex }"></span>{{ project.dim }}</span>
             <span class="pill" :class="project.status">{{ project.status }}</span>
           </div>
+          <div class="card-source">Source · {{ project.source }}</div>
           <h3>{{ project.name }}</h3>
           <div class="card-meta">{{ project.fac }} · {{ project.bldg }}</div>
           <div class="card-body">
