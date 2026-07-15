@@ -20,6 +20,12 @@ type RemoteProject = {
 };
 
 const PROJECTS_URL = 'https://i-tup.github.io/backend/projects.json';
+const FALLBACK_URL = './fallback.json';
+
+const useFallbackData = (): boolean => {
+  const params = new URLSearchParams(window.location.search);
+  return params.has('fallback');
+};
 
 const loadTemplate = async (): Promise<string> => {
   const response = await fetch('./components/app/app.html');
@@ -78,6 +84,38 @@ const loadProjects = async (
   return items.map((project: RemoteProject) => mapProject(project, dimensions, normalizeDimension));
 };
 
+type FallbackKpiValue = number | { score: number; rationale: string };
+
+const extractKpiScore = (value: FallbackKpiValue | undefined): number => {
+  if (value === undefined || value === null) return 0;
+  return typeof value === 'object' ? value.score : value;
+};
+
+const loadFallbackProjects = async (
+  dimensions: Record<string, any>,
+  normalizeDimension: (dimension: string, dimensions: Record<string, any>) => string
+) => {
+  const response = await fetch(FALLBACK_URL);
+
+  if (!response.ok) {
+    throw new Error('Failed to load fallback projects.');
+  }
+
+  const items = await response.json() as Array<Omit<RemoteProject, 'kpi'> & { kpi?: Record<string, FallbackKpiValue> }>;
+  const list = Array.isArray(items) ? items : [];
+
+  return list.map((project) => ({
+    ...mapProject(project as RemoteProject, dimensions, normalizeDimension),
+    s: {
+      carbon: extractKpiScore(project.kpi?.carbon),
+      cost: extractKpiScore(project.kpi?.cost),
+      sdg: extractKpiScore(project.kpi?.sdg),
+      lockin: extractKpiScore(project.kpi?.lockin),
+      data: extractKpiScore(project.kpi?.data)
+    }
+  }));
+};
+
 export const createAppConfig = async () => {
   const [
     appData,
@@ -97,7 +135,9 @@ export const createAppConfig = async () => {
 
   const dimensions = appData.DIMENSIONS;
   const weights = appData.WEIGHTS;
-  const projects = await loadProjects(dimensions, appUtils.normalizeDimension);
+  const projects = useFallbackData()
+    ? await loadFallbackProjects(dimensions, appUtils.normalizeDimension)
+    : await loadProjects(dimensions, appUtils.normalizeDimension);
   const scoreProject = (project: any) => appUtils.score(project, weights);
 
   return {
